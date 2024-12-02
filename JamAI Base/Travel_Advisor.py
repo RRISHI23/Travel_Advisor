@@ -1,3 +1,5 @@
+import folium
+from streamlit_folium import st_folium
 import os
 import streamlit as st
 import requests
@@ -97,6 +99,13 @@ st.markdown(
             font-size: 16px;
             margin-bottom: 5px;
         }
+
+        /* Position the GitHub icon at the bottom-left of the sidebar */
+        .github-icon {
+            position: absolute;  
+            top: 300px;  /* Distance from the bottom */  
+            left: 100px;    /* Distance from the left */
+        }
     </style>
     """,
     unsafe_allow_html=True,
@@ -173,7 +182,7 @@ def fetch_travel_advice(home_country, desired_country, activity):
 
 # Function to display the travel advice in Streamlit
 def display_travel_advice(advice_details):
-    """Display the travel advice details in the Streamlit app."""
+    """Display the travel advice details in the Streamlit app.""" 
     if advice_details:
         # Display flight duration
         st.markdown(f"<div class='output-section'>"
@@ -232,11 +241,11 @@ def generate_pdf(advice_details):
     return output_file
 
 
-# Streamlit UI
+# Header
 st.title("✈️ Travel Advisor with JamAI Base")
 st.markdown("Powered by JamAI Base and ELL Meta Llama 3.1 (8B)")
 
-# Inputs for the travel advisor
+# Sidebar content
 with st.sidebar:
     st.subheader("✨ Enter your Travel Details")
 
@@ -246,6 +255,38 @@ with st.sidebar:
 
     submit_button = st.button(label="🥳 Get Travel Advice")
 
+ # GitHub link with official icon (using markdown and custom class for positioning)
+    st.markdown(
+        """
+        <div class="github-icon">
+            <a href="https://github.com/RRISHI23/Travel_Advisor/tree/main/JamAI%20Base" target="_blank">
+                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="50" height="50">
+            </a>
+        </div>
+        """, 
+        unsafe_allow_html=True
+    )
+
+# Main content area
+if not submit_button:
+    # Folium Map for Location Search (only show before generating travel advice)
+    st.subheader("📍 Locate Your Desired Destination")
+    map_center = [4.2105, 101.9758]  # Default coordinates for Malaysia (can be adjusted)
+    folium_map = folium.Map(location=map_center, zoom_start=5)
+
+    # Allow the user to click and get the latitude and longitude of the location
+    folium.Marker([4.2105, 101.9758], popup="Malaysia").add_to(folium_map)
+
+    # Display the map with Folium in Streamlit
+    map = st_folium(folium_map, width=725) 
+
+    # Get the latitude and longitude from the user interaction (if available)
+    if map and 'last_click' in map:
+        lat = map['last_click']['lat']
+        lon = map['last_click']['lon']
+        st.write(f"Latitude: {lat}, Longitude: {lon}")
+    else:
+        lat, lon = None, None
 
 # Button to generate travel advice and provide PDF download link
 if submit_button:
